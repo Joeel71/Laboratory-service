@@ -1,5 +1,8 @@
 package flogo.boot.utils.api;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -16,6 +19,8 @@ public class FlogoApiConnection implements ApiConnection {
     private static final String STATS_PATH = "stats";
     private static final String QUERY_PARAMS_DELIMITER = "&";
     private static final String INIT_QUERY_PARAMS = "?";
+    private static final String RESPONSE_NAME_FIELD = "response";
+
 
     @Override
     public String postObject(String concept, ByteArrayOutputStream body) {
@@ -32,7 +37,7 @@ public class FlogoApiConnection implements ApiConnection {
     @Override
     public String deleteObject(String concept, String name) {
         try {
-            HttpURLConnection connection = createPostConnection(createURL(addPathParams(concept, new String[]{name})));
+            HttpURLConnection connection = createDeleteConnection(createURL(addPathParams(concept, new String[]{name})));
             return readResponse(connection);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -107,10 +112,14 @@ public class FlogoApiConnection implements ApiConnection {
         return "File downloaded";
     }
 
+    private String deserializeAnswer(String json){
+        return new Gson().fromJson(json, JsonObject.class).get(RESPONSE_NAME_FIELD).getAsString();
+    }
+
     private String readResponse(HttpURLConnection connection) throws IOException {
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK)
-            return readBuffer(new BufferedReader(new InputStreamReader(connection.getInputStream())));
-        return readBuffer(new BufferedReader(new InputStreamReader(connection.getErrorStream())));
+            return deserializeAnswer(readBuffer(new BufferedReader(new InputStreamReader(connection.getInputStream()))));
+        return deserializeAnswer(readBuffer(new BufferedReader(new InputStreamReader(connection.getErrorStream()))));
     }
 
     private String readBuffer(BufferedReader reader) throws IOException {
@@ -124,6 +133,12 @@ public class FlogoApiConnection implements ApiConnection {
     private HttpURLConnection createGetConnection(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
+        return connection;
+    }
+
+    private HttpURLConnection createDeleteConnection(URL url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("DELETE");
         return connection;
     }
 

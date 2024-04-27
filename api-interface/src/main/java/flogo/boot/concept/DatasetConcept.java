@@ -12,6 +12,7 @@ public class DatasetConcept extends Concept{
     private static final DatasetNameExtractor NAME_EXTRACTOR = new DatasetNameExtractor();
     private static final String ZIP_NAME = "attachment";
     private File datasetFile;
+    private File zipFile;
 
     @Override
     public Concept readFrom(String path){
@@ -27,9 +28,14 @@ public class DatasetConcept extends Concept{
     @Override
     public ByteArrayOutputStream toOutputStream() {
         String serialization = jsonSerialization(NAME_EXTRACTOR);
+        zipFile = zipFile(datasetFile);
         return byteArrayConverter.addJson(serialization, JSON_NAME)
-                .addZipFile(zipFile(datasetFile), ZIP_NAME)
+                .addZipFile(zipFile, ZIP_NAME)
                 .convert();
+    }
+
+    public void deleteZipFile(){
+        zipFile.delete();
     }
 
     private File zipFile(File file) {

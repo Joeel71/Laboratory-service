@@ -1,5 +1,7 @@
 package api;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import spark.Response;
 
 import java.io.IOException;
@@ -8,6 +10,7 @@ public class ResponseBuilder {
 
     private static final int ERROR_STATUS = 500;
     private static final int SUCCESS_STATUS = 200;
+    private static final String RESPONSE_JSON_FIELD = "response";
     private Response response;
 
     public ResponseBuilder response(Response response){
@@ -17,12 +20,12 @@ public class ResponseBuilder {
 
     public String successResponse(String message) {
         response.status(SUCCESS_STATUS);
-        return message;
+        return serializeResponse(message);
     }
 
     public String errorResponse(String errorMessage) {
         response.status(ERROR_STATUS);
-        return errorMessage;
+        return serializeResponse(errorMessage);
     }
 
     public String successResponse(byte[] bytes, String filename, String message) {
@@ -36,5 +39,11 @@ public class ResponseBuilder {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String serializeResponse(String response){
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty(RESPONSE_JSON_FIELD, response);
+        return new Gson().toJson(jsonObject);
     }
 }

@@ -34,8 +34,8 @@ public class FlogoPostFiles implements Command {
         if (concept instanceof DatasetConcept datasetConcept)
             datasetConcept.datasetFile(comprehensionUtils.download(request));
         byte[] definition = extractDefinition(request);
-        concept.content(extractContent(definition))
-                .name(extractName(definition));
+        concept.name(extractName(definition))
+                .content(extractContent(definition));
         if (serverFilesManager.isFileUploaded(concept))
             return responseBuilder.errorResponse("File already uploaded");
         if (serverFilesManager.isNameTaken(concept))

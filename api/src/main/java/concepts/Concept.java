@@ -16,7 +16,7 @@ public abstract class Concept {
 
     public Concept content(String content){
         this.content = content;
-        this.codification = encoder.encode(content);
+        this.codification = encoder.encode(content.replaceAll(name, ""));
         return this;
     }
 
