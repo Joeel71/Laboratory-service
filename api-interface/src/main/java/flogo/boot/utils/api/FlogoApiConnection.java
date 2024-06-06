@@ -1,12 +1,14 @@
 package flogo.boot.utils.api;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -69,9 +71,9 @@ public class FlogoApiConnection implements ApiConnection {
     }
 
     @Override
-    public String getObject(String concept, String name, String path) {
+    public String getObject(String url, String name, String path) {
         try {
-            HttpURLConnection connection = createGetConnection(createURL(addPathParams(concept, new String[]{name})));
+            HttpURLConnection connection = createGetConnection(createURL(addPathParams(url, new String[]{name})));
             return readResponse(connection, path);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -113,7 +115,17 @@ public class FlogoApiConnection implements ApiConnection {
     }
 
     private String deserializeAnswer(String json){
-        return new Gson().fromJson(json, JsonObject.class).get(RESPONSE_NAME_FIELD).getAsString();
+        JsonObject jsonObject = new Gson().fromJson(json, JsonObject.class);
+        if (jsonObject.get(RESPONSE_NAME_FIELD).isJsonArray())
+            return String.join("\n", deserializerArray(jsonObject));
+        return jsonObject.get(RESPONSE_NAME_FIELD).getAsString();
+    }
+
+    private List<String> deserializerArray(JsonObject jsonObject) {
+        List<String> responseList = new ArrayList<>();
+        for (JsonElement jsonElement: jsonObject.getAsJsonArray(RESPONSE_NAME_FIELD))
+            responseList.add(jsonElement.getAsString());
+        return responseList;
     }
 
     private String readResponse(HttpURLConnection connection) throws IOException {

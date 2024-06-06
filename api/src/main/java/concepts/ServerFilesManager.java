@@ -6,6 +6,7 @@ import utils.files.comprehension.ComprehensionUtils;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,6 +21,7 @@ public class ServerFilesManager {
     private static final String REPOSITORY_PATH = "repository";
     private static final String PREDICT_PATH = "predict/model";
     private static final String LOGGER_PATH = "executions/logger/result.tsv";
+    private static final String CHECKPOINTS_PATH = "checkpoints";
     private final String initialPath;
     private final ComprehensionUtils comprehensionUtils;
 
@@ -43,8 +45,8 @@ public class ServerFilesManager {
         return loadServerFile(concept).containsValue(concept.codification);
     }
 
-    public String listAvailable(Concept concept) {
-        return String.join("\n", loadServerFile(concept).keySet());
+    public String[] listAvailable(Concept concept) {
+        return loadServerFile(concept).keySet().toArray(new String[0]);
     }
 
     public Concept loadConcept(Concept concept) {
@@ -53,18 +55,17 @@ public class ServerFilesManager {
         return concept;
     }
 
-    public boolean deleteConcept(Concept concept) {
-        if (!isNameTaken(concept)) return false;
+    public void deleteConcept(Concept concept) {
         deleteOnServerFile(concept);
         deleteFile(conceptFile(concept));
-        return true;
-
     }
 
     public boolean moveToExecute(Concept concept){
         if (!isNameTaken(concept)) return false;
         if (!concept.hasContent()) loadConcept(concept);
-        moveTo(concept, executionFile(conceptType(concept)));
+        if (concept instanceof ArchitectureConcept)
+            moveTo(conceptFile(concept), new File(executeFolder() + PATH_DELIMITER + concept.name() + fileExtension(concept)));
+        else moveTo(concept, executionFile(conceptType(concept)));
         return true;
     }
 
@@ -76,10 +77,6 @@ public class ServerFilesManager {
     public void decompressDatasetExecuteFile() {
         comprehensionUtils.decompress(executionFile("dataset"));
         deleteFile(executionFile("dataset"));
-    }
-
-    public byte[] getModelFile(ComprehensionUtils comprehensionUtils) {
-        return comprehensionUtils.read(comprehensionUtils.compress(predictFolder()));
     }
 
     public void cleanExecuteFolder() {
@@ -103,6 +100,11 @@ public class ServerFilesManager {
         FileWriter.write(file, concept.content());
     }
 
+    private void moveTo(File checkPoint, File file) {
+        checkFolder(file);
+        FileWriter.write(file, FileReader.readBytes(checkPoint));
+    }
+
     private File executionFile(String conceptType) {
         return new File(executeFolder() + PATH_DELIMITER + conceptType + fileExtension(conceptType));
     }
@@ -111,7 +113,7 @@ public class ServerFilesManager {
         return new File(predictFolder() + PATH_DELIMITER + conceptType + fileExtension(conceptType));
     }
 
-    private File predictFolder() {
+    public File predictFolder() {
         return new File(initialPath + PATH_DELIMITER + PREDICT_PATH);
     }
 
@@ -120,7 +122,7 @@ public class ServerFilesManager {
     }
 
     private File conceptFile(Concept concept) {
-        return new File(initialPath + PATH_DELIMITER + REPOSITORY_PATH +PATH_DELIMITER + conceptType(concept) + PATH_DELIMITER + concept.name() + fileExtension(concept));
+        return new File(initialPath + PATH_DELIMITER + REPOSITORY_PATH + PATH_DELIMITER + conceptType(concept) + PATH_DELIMITER + concept.name() + fileExtension(concept));
     }
 
     private Map<String, String> loadServerFile(Concept concept) {
@@ -160,5 +162,23 @@ public class ServerFilesManager {
         if (file.isDirectory())
             Arrays.stream(file.listFiles()).sequential().forEach(this::deleteFile);
         file.delete();
+    }
+
+    public void moveBestCheckPoint(String laboratory, String experiment) {
+        File checkPoint = new File(bestCheckPoint(laboratory, experiment) +  PATH_DELIMITER + "model.pt");
+        moveTo(checkPoint, new File(predictFolder() + PATH_DELIMITER + "checkpoint.pt"));
+    }
+
+    private File bestCheckPoint(String laboratory, String experiment) {
+        File[] files = new File(initialPath + PATH_DELIMITER + CHECKPOINTS_PATH + PATH_DELIMITER + laboratory + PATH_DELIMITER + experiment)
+                .listFiles();
+        return Arrays.stream(files)
+                .sorted(Comparator.comparingInt(file -> file.getName().charAt(file.getName().length() - 1)))
+                .findFirst().get();
+    }
+
+    public void cleanPredictFolder(Concept architecture, String laboratory, String experiment) {
+        predictFile(conceptType(architecture)).delete();
+
     }
 }

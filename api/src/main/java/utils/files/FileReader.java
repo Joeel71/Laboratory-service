@@ -1,8 +1,6 @@
 package utils.files;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +13,7 @@ public class FileReader {
             String line;
             while ((line = br.readLine()) != null) content.append(line).append("\n");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return content.toString();
     }
@@ -30,8 +28,21 @@ public class FileReader {
                 map.put(split[0], split[1]);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return map;
+    }
+
+    public static byte[] readBytes(File file) {
+        try (FileInputStream inputStream = new FileInputStream(file);
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1)
+                outputStream.write(buffer, 0, bytesRead);
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

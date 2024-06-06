@@ -17,8 +17,8 @@ public class FlogoListFiles implements Command {
 
     @Override
     public String execute(Request request, ResponseBuilder responseBuilder) {
-        String available = serverFilesManager.listAvailable(concept);
-        if (available.isEmpty())
+        String[] available = serverFilesManager.listAvailable(concept);
+        if (available.length == 0)
             return responseBuilder.successResponse("There is not any file uploaded to the server");
         return responseBuilder.successResponse(available);
     }

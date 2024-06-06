@@ -21,9 +21,6 @@ public class ExperimentsOnLaboratoryStat extends Stat{
                                 Collectors.minBy(Comparator.comparingDouble(lineArray -> Double.parseDouble(lineArray[7]))),
                                 min -> min.get()[7]))
                 );
-
-
-
         return builder.successResponse(serialize(castLaboratoryResult(laboratoryName(request)), castMapResult(result)));
     }
 

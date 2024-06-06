@@ -19,10 +19,10 @@ public class LaboratoryConcept extends Concept {
     }
 
     private static class LaboratoryNameExtractor implements NameExtractor {
-        private static final String LABORATORY_NAME_MARK = "Laboratory\\(";
+        private static final String LABORATORY_NAME_MARK = "Laboratory\\(name=\"";
         @Override
         public String extract(String content) {
-            return content.split(LABORATORY_NAME_MARK)[1].split("\"")[1];
+            return content.split(LABORATORY_NAME_MARK)[1].split("\"")[0];
         }
     }
 }

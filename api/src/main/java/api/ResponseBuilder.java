@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import spark.Response;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ResponseBuilder {
 
@@ -19,6 +21,11 @@ public class ResponseBuilder {
     }
 
     public String successResponse(String message) {
+        response.status(SUCCESS_STATUS);
+        return serializeResponse(message);
+    }
+
+    public String successResponse(String[] message) {
         response.status(SUCCESS_STATUS);
         return serializeResponse(message);
     }
@@ -45,5 +52,11 @@ public class ResponseBuilder {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty(RESPONSE_JSON_FIELD, response);
         return new Gson().toJson(jsonObject);
+    }
+
+    private String serializeResponse(String[] response){
+        Map<String, String[]> jsonMap = new HashMap<>();
+        jsonMap.put("response", response);
+        return new Gson().toJson(jsonMap);
     }
 }

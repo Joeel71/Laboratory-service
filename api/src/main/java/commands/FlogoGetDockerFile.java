@@ -6,12 +6,14 @@ import concepts.Concept;
 import concepts.ServerFilesManager;
 import spark.Request;
 import utils.encoders.HashEncoder;
+import utils.files.FileReader;
 import utils.files.comprehension.ComprehensionUtils;
+
+import java.io.File;
 
 public class FlogoGetDockerFile implements Command{
 
-    private static final String LABORATORY_NAME_PARAMETER = "laboratory";
-    private static final String EXPECTED_MODE = "test";
+    private static final String ARCHITECTURE_NAME_PARAMETER = "architecture";
     protected static final String LOGGER_DELIMITER = "\t";
     private final ServerFilesManager serverFilesManager;
     private final ComprehensionUtils comprehensionUtils;
@@ -25,23 +27,24 @@ public class FlogoGetDockerFile implements Command{
 
     @Override
     public String execute(Request request, ResponseBuilder responseBuilder) {
-        String[] bestOnLaboratory = getBestOnLaboratory(request);
-        Concept architecture = serverFilesManager.loadConcept(new ArchitectureConcept(encoder).name(bestOnLaboratory[0]));
+        String laboratory = laboratoryOf(extractExperimentName(request));
+        Concept architecture = serverFilesManager.loadConcept(new ArchitectureConcept(encoder).name(extractExperimentName(request)));
         serverFilesManager.moveToPredict(architecture);
-        byte[] modelFile = serverFilesManager.getModelFile(comprehensionUtils);
-        return responseBuilder.successResponse(modelFile, "model", "The model has been transferred");
+        serverFilesManager.moveBestCheckPoint(laboratory, extractExperimentName(request));
+        File zipFile = comprehensionUtils.compress(serverFilesManager.predictFolder());
+//        serverFilesManager.cleanPredictFolder(architecture);
+        return responseBuilder.successResponse(FileReader.readBytes(zipFile), "model", "The model has been transferred");
     }
 
-    private String[] getBestOnLaboratory(Request request) {
+    private String laboratoryOf(String experimentName) {
         return serverFilesManager.readLoggerResult()
                 .map(line -> line.split(LOGGER_DELIMITER))
-                .filter(lineArray -> lineArray[1].equals(extractLaboratoryName(request)))
-                .filter(lineArray -> lineArray[6].equals(EXPECTED_MODE))
-                .map(lineArray -> new String[]{lineArray[0], lineArray[2]})
+                .filter(lineArray -> lineArray[1].equals(experimentName))
+                .map(lineArray -> lineArray[0])
                 .findFirst().get();
     }
 
-    private String extractLaboratoryName(Request request) {
-        return request.params(LABORATORY_NAME_PARAMETER);
+    private String extractExperimentName(Request request) {
+        return request.params(ARCHITECTURE_NAME_PARAMETER);
     }
 }

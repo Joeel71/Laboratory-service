@@ -58,6 +58,7 @@ public class ZipUtils implements ComprehensionUtils {
             if (!destDir.exists()) destDir.mkdir();
             ZipInputStream zin = new ZipInputStream(new FileInputStream(zipfile));
             unzip(zin, destDirectory);
+            zin.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -80,12 +81,17 @@ public class ZipUtils implements ComprehensionUtils {
     }
 
     private void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
+        checkFolder(new File(filePath));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath, true));
         byte[] bytesIn = new byte[BUFFER_SIZE];
         int read;
         while ((read = zipIn.read(bytesIn)) != -1)
             bos.write(bytesIn, 0, read);
         bos.close();
+    }
+
+    private void checkFolder(File file) {
+        if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
     }
 
     private String destDirectory(File file){

@@ -10,6 +10,8 @@ public class FlogoExecutor implements Command {
 
     private static final String ARCHITECTURE_PARAMETER = "architecture";
     private static final String LABORATORY_PARAMETER = "laboratory";
+    private static final String EXPECTED_MODE = "test";
+    protected static final String LOGGER_DELIMITER = "\t";
     private final ServerFilesManager serverFilesManager;
     private final HashEncoder encoder;
     private final ScriptLauncher scriptLauncher;
@@ -25,15 +27,31 @@ public class FlogoExecutor implements Command {
         Concept laboratory = serverFilesManager.loadConcept(new LaboratoryConcept(encoder).name(laboratoryName(request)));
         if (!serverFilesManager.moveToExecute(laboratory))
             return builder.errorResponse(laboratory.name() + " have not been uploaded");
-        if (!serverFilesManager.moveToExecute(new ArchitectureConcept(encoder).name(architectureName(request))))
-            return builder.errorResponse(architectureName(request) + " have not been uploaded");
         if (!serverFilesManager.moveToExecute(new DatasetConcept(encoder).name(getDatasetName(laboratory))))
-            return builder.errorResponse(new DatasetConcept(encoder).name(getDatasetName(laboratory)) + " have not been uploaded");
+            return builder.errorResponse(getDatasetName(laboratory) + " have not been uploaded");
+
+        for(String architectureName: getArchitecturesNames(laboratory))
+            if (!serverFilesManager.moveToExecute(new ArchitectureConcept(encoder).name(architectureName)))
+                return builder.errorResponse(architectureName(request) + " have not been uploaded");
+
 
         serverFilesManager.decompressDatasetExecuteFile();
         execute();
         serverFilesManager.cleanExecuteFolder();
-        return builder.successResponse("Execution completed");
+        return builder.successResponse(bestArchitecture(laboratory.name()));
+    }
+
+    private String bestArchitecture(String laboratoryName) {
+        return serverFilesManager.readLoggerResult()
+                .map(line -> line.split(LOGGER_DELIMITER))
+                .filter(lineArray -> lineArray[1].equals(laboratoryName))
+                .filter(lineArray -> lineArray[6].contains(EXPECTED_MODE))
+                .map(lineArray -> lineArray[2])
+                .findFirst().get();
+    }
+
+    private String[] getArchitecturesNames(Concept laboratory) {
+        return ((LaboratoryConcept) laboratory).architecturesNames();
     }
 
     private void execute() {

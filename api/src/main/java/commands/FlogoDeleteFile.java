@@ -19,8 +19,9 @@ public class FlogoDeleteFile implements Command {
 
     @Override
     public String execute(Request request, ResponseBuilder responseBuilder) {
-        if (serverFilesManager.deleteConcept(concept.name(extractName(request))))
-            return responseBuilder.successResponse("File delete");
+        concept.name(extractName(request));
+        if (serverFilesManager.isNameTaken(concept)) return responseBuilder.successResponse("File delete");
+        serverFilesManager.deleteConcept(concept);
         return responseBuilder.errorResponse("This file was not on the server");
     }
 

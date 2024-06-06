@@ -8,14 +8,11 @@ public class ExecuteOperation extends Operation{
     }
 
     private String[] queryParamsList(String[] args) {
-        return new String[]{architecture(args), lab(args)};
+        return new String[]{lab(args)};
     }
 
-    private String architecture(String[] args) {
-        return args[1];
-    }
 
     private String lab(String[] args) {
-        return args[2];
+        return args[1];
     }
 }

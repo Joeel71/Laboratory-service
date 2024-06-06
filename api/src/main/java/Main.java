@@ -11,6 +11,7 @@ import commands.stats.ExperimentsOnLaboratoryStat;
 import utils.ScriptLauncher;
 import utils.encoders.HashEncoder;
 import utils.encoders.MD5HashEncoder;
+import utils.files.comprehension.ComprehensionUtils;
 import utils.files.comprehension.ZipUtils;
 
 public class Main {
@@ -23,7 +24,7 @@ public class Main {
         ScriptLauncher scriptLauncher = new ScriptLauncher(INITIAL_PATH);
         WebService webService = new WebService();
 
-        addGets(webService, new ServerFilesManager(INITIAL_PATH, new ZipUtils()), md5HashEncoder);
+        addGets(webService, new ServerFilesManager(INITIAL_PATH, new ZipUtils()), md5HashEncoder, new ZipUtils());
         addPost(webService, new ServerFilesManager(INITIAL_PATH, new ZipUtils()), md5HashEncoder, new ZipUtils(), scriptLauncher);
         addDeletes(webService, new ServerFilesManager(INITIAL_PATH, new ZipUtils()), md5HashEncoder);
 
@@ -34,10 +35,10 @@ public class Main {
         webService.addPost("/flogo/architecture", new FlogoPostFiles(serverFilesManager, zipUtils, new ArchitectureConcept(encoder)))
                 .addPost("/flogo/laboratory", new FlogoPostFiles(serverFilesManager, zipUtils, new LaboratoryConcept(encoder)))
                 .addPost("/flogo/dataset", new FlogoPostFiles(serverFilesManager, zipUtils, new DatasetConcept(encoder)))
-                .addPost("/flogo/execute/:architecture/:laboratory", new FlogoExecutor(serverFilesManager, encoder, scriptLauncher));
+                .addPost("/flogo/execute/:laboratory", new FlogoExecutor(serverFilesManager, encoder, scriptLauncher));
     }
 
-    private static void addGets(WebService webService, ServerFilesManager serverFilesManager, HashEncoder encoder) {
+    private static void addGets(WebService webService, ServerFilesManager serverFilesManager, HashEncoder encoder, ComprehensionUtils comprehensionUtils) {
         webService.addGet("/flogo/architecture/:name", new FlogoGetFile(serverFilesManager, new ArchitectureConcept(encoder)))
                 .addGet("/flogo/laboratory/:name", new FlogoGetFile(serverFilesManager, new LaboratoryConcept(encoder)))
                 .addGet("/flogo/dataset/:name", new FlogoGetFile(serverFilesManager, new DatasetConcept(encoder)));
@@ -47,6 +48,7 @@ public class Main {
                 .addGet("/flogo/dataset", new FlogoListFiles(serverFilesManager, new DatasetConcept(encoder)));
 
         webService.addGet("/flogo/stats/:stat", createLaboratoryStat(serverFilesManager));
+        webService.addGet("/flogo/model/:architecture", new FlogoGetDockerFile(serverFilesManager, comprehensionUtils, encoder));
     }
 
     private static void addDeletes(WebService webService, ServerFilesManager serverFilesManager, MD5HashEncoder encoder){
@@ -55,10 +57,6 @@ public class Main {
                 .addPost("/flogo/dataset/:name", new FlogoDeleteFile(serverFilesManager, new DatasetConcept(encoder)));
 
     }
-
-//    private static FlogoStat createExperimentStat(ServerConceptManager serverConceptManager) {
-//        return new FlogoStat(serverConceptManager);
-//    }
 
     private static FlogoStat createLaboratoryStat(ServerFilesManager serverFilesManager) {
         return new FlogoStat(serverFilesManager)
