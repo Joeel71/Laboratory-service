@@ -26,6 +26,7 @@ public class Main {
         operationSelector.add(new GetStatOperation(), "stat");
         operationSelector.add(new DeleteOperation(), "delete");
         operationSelector.add(new ExecuteOperation(), "execute");
+        operationSelector.add(new GetModelOperation(), "model");
     }
 
     private static String getOperation(String[] args) {
