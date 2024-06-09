@@ -13,7 +13,8 @@ import java.io.File;
 
 public class FlogoGetDockerFile implements Command{
 
-    private static final String ARCHITECTURE_NAME_PARAMETER = "architecture";
+    private static final String EXPERIMENT_NAME_PARAMETER = "experiment";
+    private static final String LABORATORY_NAME_PARAMETER = "laboratory";
     protected static final String LOGGER_DELIMITER = "\t";
     private final ServerFilesManager serverFilesManager;
     private final ComprehensionUtils comprehensionUtils;
@@ -32,7 +33,7 @@ public class FlogoGetDockerFile implements Command{
         serverFilesManager.moveToPredict(architecture);
         serverFilesManager.moveBestCheckPoint(laboratory, extractExperimentName(request));
         File zipFile = comprehensionUtils.compress(serverFilesManager.predictFolder());
-//        serverFilesManager.cleanPredictFolder(architecture);
+        serverFilesManager.cleanPredictFolder();
         return responseBuilder.successResponse(FileReader.readBytes(zipFile), "model", "The model has been transferred");
     }
 
@@ -45,6 +46,10 @@ public class FlogoGetDockerFile implements Command{
     }
 
     private String extractExperimentName(Request request) {
-        return request.params(ARCHITECTURE_NAME_PARAMETER);
+        return request.params(EXPERIMENT_NAME_PARAMETER);
+    }
+
+    private String extractLaboratoryName(Request request) {
+        return request.params(LABORATORY_NAME_PARAMETER);
     }
 }

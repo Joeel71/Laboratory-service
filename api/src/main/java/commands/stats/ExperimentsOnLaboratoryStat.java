@@ -14,12 +14,12 @@ public class ExperimentsOnLaboratoryStat extends Stat{
     public String executeStat(Request request, ResponseBuilder builder) {
         Map<String, String> result = serverFilesManager.readLoggerResult()
                 .map(line -> line.split(LOGGER_DELIMITER))
-                .filter(lineArray -> lineArray[1].equals(laboratoryName(request)))
-                .filter(lineArray -> lineArray[6].equals(EXPECTED_MODE))
-                .collect(Collectors.groupingBy(lineArray -> lineArray[2],
+                .filter(lineArray -> lineArray[0].equals(laboratoryName(request)))
+                .filter(lineArray -> lineArray[5].equals(EXPECTED_MODE))
+                .collect(Collectors.groupingBy(lineArray -> lineArray[1],
                         Collectors.collectingAndThen(
-                                Collectors.minBy(Comparator.comparingDouble(lineArray -> Double.parseDouble(lineArray[7]))),
-                                min -> min.get()[7]))
+                                Collectors.minBy(Comparator.comparingDouble(lineArray -> Double.parseDouble(lineArray[6]))),
+                                min -> min.get()[6]))
                 );
         return builder.successResponse(serialize(castLaboratoryResult(laboratoryName(request)), castMapResult(result)));
     }

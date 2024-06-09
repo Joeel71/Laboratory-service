@@ -45,10 +45,7 @@ public class WebService {
 
         for (String route: deleteCommands.keySet())
             Spark.delete(route, (req, res) -> deleteCommands.get(route).execute(req, RESPONSE_BUILDER.response(res)));
-//        post("/flogo/dataset", (request, response) ->
-//                selectManager("post")
-//                        .addConcept(new DatasetConcept(encoder).datasetFile(comprehensionUtils.download(request))).execute(request, RESPONSE_BUILDER.response(response)));
-    }
+   }
 
     public WebService addGet(String path, Command command) {
         getCommands.put(path, command);

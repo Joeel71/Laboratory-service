@@ -15,13 +15,13 @@ public class ExperimentStat extends Stat{
     public String executeStat(Request request, ResponseBuilder builder) {
         List<String> measurements = serverFilesManager.readLoggerResult()
                 .map(line -> line.split(LOGGER_DELIMITER))
-                .filter(lineArray -> lineArray[1].equals(laboratoryName(request)))
-                .filter(lineArray -> lineArray[2].equals(experimentName(request)))
-                .filter(lineArray -> lineArray[6].equals(EXPECTED_MODE))
-                .sorted(Comparator.comparing(lineArray -> lineArray[5]))
-                .map(lineArray -> lineArray[7])
+                .filter(lineArray -> lineArray[0].equals(laboratoryName(request)))
+                .filter(lineArray -> lineArray[1].equals(experimentName(request)))
+                .filter(lineArray -> lineArray[5].equals(EXPECTED_MODE))
+                .sorted(Comparator.comparing(lineArray -> lineArray[4]))
+                .map(lineArray -> lineArray[6])
                 .toList();
-        return serialize(castNames(request), castMeasurements(measurements));
+        return builder.successResponse(serialize(castNames(request), castMeasurements(measurements)));
     }
 
     private Map<String, List<String>> castMeasurements(List<String> measurements) {

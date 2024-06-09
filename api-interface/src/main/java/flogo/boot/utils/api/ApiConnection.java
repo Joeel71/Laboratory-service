@@ -10,5 +10,6 @@ public interface ApiConnection {
     String execute(String[] pathParams);
     String listObjects(String concept);
     String getObject(String concept, String name, String path);
+    String getModel(String concept, String laboratory, String experiment, String path);
     String getStat(String stat, Map<String, String> queryParams);
 }

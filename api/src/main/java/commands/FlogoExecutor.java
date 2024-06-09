@@ -26,27 +26,26 @@ public class FlogoExecutor implements Command {
     public String execute(Request request, ResponseBuilder builder) {
         Concept laboratory = serverFilesManager.loadConcept(new LaboratoryConcept(encoder).name(laboratoryName(request)));
         if (!serverFilesManager.moveToExecute(laboratory))
-            return builder.errorResponse(laboratory.name() + " have not been uploaded");
+            return builder.errorResponse("The laboratory named " + laboratory.name() + " have not been uploaded");
         if (!serverFilesManager.moveToExecute(new DatasetConcept(encoder).name(getDatasetName(laboratory))))
-            return builder.errorResponse(getDatasetName(laboratory) + " have not been uploaded");
+            return builder.errorResponse("The dataset named " + getDatasetName(laboratory) + " have not been uploaded");
 
         for(String architectureName: getArchitecturesNames(laboratory))
             if (!serverFilesManager.moveToExecute(new ArchitectureConcept(encoder).name(architectureName)))
-                return builder.errorResponse(architectureName(request) + " have not been uploaded");
-
+                return builder.errorResponse("The architecture named " + architectureName(request) + " have not been uploaded");
 
         serverFilesManager.decompressDatasetExecuteFile();
         execute();
         serverFilesManager.cleanExecuteFolder();
-        return builder.successResponse(bestArchitecture(laboratory.name()));
+        return builder.successResponse("The architecture with the best performance was " + bestArchitecture(laboratory.name()));
     }
 
     private String bestArchitecture(String laboratoryName) {
         return serverFilesManager.readLoggerResult()
                 .map(line -> line.split(LOGGER_DELIMITER))
-                .filter(lineArray -> lineArray[1].equals(laboratoryName))
-                .filter(lineArray -> lineArray[6].contains(EXPECTED_MODE))
-                .map(lineArray -> lineArray[2])
+                .filter(lineArray -> lineArray[0].equals(laboratoryName))
+                .filter(lineArray -> lineArray[5].contains(EXPECTED_MODE))
+                .map(lineArray -> lineArray[1])
                 .findFirst().get();
     }
 

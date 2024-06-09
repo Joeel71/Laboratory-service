@@ -48,20 +48,20 @@ public class Main {
                 .addGet("/flogo/dataset", new FlogoListFiles(serverFilesManager, new DatasetConcept(encoder)));
 
         webService.addGet("/flogo/stats/:stat", createLaboratoryStat(serverFilesManager));
-        webService.addGet("/flogo/model/:architecture", new FlogoGetDockerFile(serverFilesManager, comprehensionUtils, encoder));
+        webService.addGet("/flogo/model/:laboratory/:experiment", new FlogoGetDockerFile(serverFilesManager, comprehensionUtils, encoder));
     }
 
     private static void addDeletes(WebService webService, ServerFilesManager serverFilesManager, MD5HashEncoder encoder){
-        webService.addPost("/flogo/architecture/:name", new FlogoDeleteFile(serverFilesManager, new ArchitectureConcept(encoder)))
-                .addPost("/flogo/laboratory/:name", new FlogoDeleteFile(serverFilesManager, new LaboratoryConcept(encoder)))
-                .addPost("/flogo/dataset/:name", new FlogoDeleteFile(serverFilesManager, new DatasetConcept(encoder)));
+        webService.addDelete("/flogo/architecture/:name", new FlogoDeleteFile(serverFilesManager, new ArchitectureConcept(encoder)))
+                .addDelete("/flogo/laboratory/:name", new FlogoDeleteFile(serverFilesManager, new LaboratoryConcept(encoder)))
+                .addDelete("/flogo/dataset/:name", new FlogoDeleteFile(serverFilesManager, new DatasetConcept(encoder)));
 
     }
 
     private static FlogoStat createLaboratoryStat(ServerFilesManager serverFilesManager) {
         return new FlogoStat(serverFilesManager)
                 .addStat("best-experiment", new BestExperimentStat())
-                .addStat("experiments", new ExperimentsOnLaboratoryStat())
-                .addStat("experiment", new ExperimentStat());
+                .addStat("experiments-on-laboratory", new ExperimentsOnLaboratoryStat())
+                .addStat("experiment-stat", new ExperimentStat());
     }
 }

@@ -21,7 +21,7 @@ public class ServerFilesManager {
     private static final String REPOSITORY_PATH = "repository";
     private static final String PREDICT_PATH = "predict/model";
     private static final String LOGGER_PATH = "executions/logger/result.tsv";
-    private static final String CHECKPOINTS_PATH = "checkpoints";
+    private static final String CHECKPOINTS_PATH = "executions/checkpoints";
     private final String initialPath;
     private final ComprehensionUtils comprehensionUtils;
 
@@ -110,7 +110,7 @@ public class ServerFilesManager {
     }
 
     private File predictFile(String conceptType) {
-        return new File(predictFolder() + PATH_DELIMITER + conceptType + fileExtension(conceptType));
+        return new File(predictFolder() + PATH_DELIMITER + "files"  + PATH_DELIMITER + conceptType + fileExtension(conceptType));
     }
 
     public File predictFolder() {
@@ -166,7 +166,11 @@ public class ServerFilesManager {
 
     public void moveBestCheckPoint(String laboratory, String experiment) {
         File checkPoint = new File(bestCheckPoint(laboratory, experiment) +  PATH_DELIMITER + "model.pt");
-        moveTo(checkPoint, new File(predictFolder() + PATH_DELIMITER + "checkpoint.pt"));
+        moveTo(checkPoint, new File(variableFilesPredictFolder() + PATH_DELIMITER + "checkpoint.pt"));
+    }
+
+    private String variableFilesPredictFolder() {
+        return predictFolder() + PATH_DELIMITER + "files";
     }
 
     private File bestCheckPoint(String laboratory, String experiment) {
@@ -177,8 +181,7 @@ public class ServerFilesManager {
                 .findFirst().get();
     }
 
-    public void cleanPredictFolder(Concept architecture, String laboratory, String experiment) {
-        predictFile(conceptType(architecture)).delete();
-
+    public void cleanPredictFolder() {
+        deleteFile(new File(variableFilesPredictFolder()));
     }
 }

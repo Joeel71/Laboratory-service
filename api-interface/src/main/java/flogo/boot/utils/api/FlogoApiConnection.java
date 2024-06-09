@@ -81,6 +81,16 @@ public class FlogoApiConnection implements ApiConnection {
     }
 
     @Override
+    public String getModel(String url, String laboratory, String experiment, String path) {
+        try {
+            HttpURLConnection connection = createGetConnection(createURL(addPathParams(url, new String[]{laboratory, experiment})));
+            return readResponse(connection, path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public String getStat(String stat, Map<String, String> queryParams) {
         try {
             HttpURLConnection connection = createGetConnection(createURL(addPathParams(STATS_PATH, new String[]{stat}), queryParams));

@@ -41,7 +41,7 @@ public class FlogoPostFiles implements Command {
         if (serverFilesManager.isNameTaken(concept))
             return responseBuilder.errorResponse("Name already selected");
         serverFilesManager.saveConcept(concept);
-        return responseBuilder.successResponse(concept.name() + " uploaded");
+        return responseBuilder.successResponse("The object named " + concept.name() + " have been uploaded");
     }
 
     private String extractContent(byte[] jsonContent) {
